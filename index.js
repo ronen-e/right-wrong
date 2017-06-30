@@ -24,13 +24,18 @@ let $events = $({});
 let fx = Object.create($events);
 Object.assign(fx, {
   highlight({ correct, wrong }) {
-    $('.questions').on('click', '.answers li', function() {
+    $('.questions').on('click', '.answers li', function(event) {
       var $el = $(this);
+      if ($el.data('handled')) {
+        return;
+      }
+      
       var color = $el.is('.correct') ? correct : wrong;
       $el.css({ color: color });
       
       var event = (color == correct) ? 'correct' : 'wrong';
       fx.trigger(event);
+      $el.data('handled', true);
     });
     return this;
   },
