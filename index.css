@@ -1,0 +1,31 @@
+body {
+  direction: rtl;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  padding: 5px;
+  
+}
+
+button {
+  padding: 5px;
+  margin: 0 5px;
+  min-width: 80px
+}
+
+section {
+  border: 2px solid blue;
+}
+
+header {
+  color: green;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+ol > li {
+  margin: 5px 0;
+}
