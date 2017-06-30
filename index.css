@@ -35,3 +35,8 @@ ol > li ul {
   list-style-type: disc;
   cursor: pointer;
 }
+
+ol, ul {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: transparent;
+}
