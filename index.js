@@ -4,39 +4,48 @@ function main() {
     wrong: 0
   };
   
-  // highlight click on correct answer
-  fx.highlight({
-    'correct': 'green',
-    'wrong': 'red'
-  });
-
   // create and init slider
   var manager = new MySlideManager().start();
   
   fx.on('correct', (event) => fx.updateResult(event.type, answers));
   fx.on('wrong', (event) => fx.updateResult(event.type, answers));
+  $('.questions').on('click', '.answers li', function(event) {
+    var el = this;
+    var $el = $(this);
+    if ($el.data('handled')) {
+      return;
+    }
+    var { correct, wrong } = COLORS;
+    var color = $el.is('.correct') ? correct : wrong;
+
+    // highlight click on correct answer
+    fx.highlight({
+      color: color,
+      el: el
+    });
+    
+    var eventType = (color == correct) ? EVENTS.correct : EVENTS.wrong;
+    fx.trigger(eventType);
+    $el.data('handled', true);
+  });  
+  
 }
 
 const EVENTS = {
-  click: 'click'
+  click: 'click',
+  correct: 'correct',
+  wrong: 'wrong'
 }
+const COLORS = {
+  correct: 'green',
+  wrong: 'red'
+};
 let $events = $({});
 let fx = Object.create($events);
 Object.assign(fx, {
-  highlight({ correct, wrong }) {
-    $('.questions').on('click', '.answers li', function(event) {
-      var $el = $(this);
-      if ($el.data('handled')) {
-        return;
-      }
-      
-      var color = $el.is('.correct') ? correct : wrong;
-      $el.css({ color: color });
-      
-      var event = (color == correct) ? 'correct' : 'wrong';
-      fx.trigger(event);
-      $el.data('handled', true);
-    });
+  highlight({ color, el }) {
+    $(el).css({ color: color });
+
     return this;
   },
   updateResult(result, answers) {
@@ -59,21 +68,15 @@ class SlideManager {
   init(options={}) {
     // configuration
     Object.assign(this, this.defaults, options);
-    
+
     // event handlers
     this.addEventHandlers();
     
-    if (this.oninit) {
-      this.$on('init', this.oninit);
-    }
-    if (this.onstart) {
-      this.$on('start', this.onstart);
-    }
-    if (this.onmove) {
-      this.$on('move', this.onmove);
-    }
-    if (this.onshowall) {
-      this.$on('showall', this.onshowall);
+    for (let prop in this) {
+      var val = this[prop];
+      if (prop.startsWith('on') && typeof val == 'function') {
+        this.$on(prop.substr('on'.length), val);
+      }
     }
     
     this.$emit('init');
@@ -161,12 +164,15 @@ class SlideManager {
   destroy() {
     Object.assign(this, this.defaults);
     this.$emit('destroy');
+    return this;
   }
   $emit(...args){
     this.pubsub.trigger(...args);
+    return this;
   }
   $on(...args) {
     this.pubsub.on(...args);
+    return this;
   }
 }
 
@@ -182,7 +188,8 @@ SlideManager.prototype.defaults = {
   showAllSel: '.showAll',
   oninit: null,
   onstart: null,
-  onmove: null
+  onmove: null,
+  onshowall: null
 }
 
 class MySlideManager extends SlideManager {
@@ -190,7 +197,7 @@ class MySlideManager extends SlideManager {
     super();
     
     var slider = this;
-    this.init({
+    slider.init({
       slides: $('section'),
       buttons: '.buttons',
       enableLoop: false,
@@ -209,14 +216,33 @@ class MySlideManager extends SlideManager {
         } else {
           slides.show();
           slider.isShowAll = true;
-        }      
+        }
+      },
+
+      showResultsSelector: '.showResults',
+      resultsSelector: '.total',
+      onshowresults: function onshowresults(event) {
+        $(slider.resultsSelector).toggle();
       }
     });
     
     return this;
   }
+  
+  addEventHandlers() {
+    super.addEventHandlers();
+    var { click } = EVENTS;
+    $(this.showResultsSelector).on(click, this.showResults);
+    this.$on('destroy', () => this.off(click, this.showResults));
+    
+    return this;
+  }
+  
+  showResults() {
+    this.$emit('showresults');
+    return this;
+  }
 }
-
 /**
  * Use boundMethod to bind all methods on the target.prototype
  */

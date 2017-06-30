@@ -1,5 +1,6 @@
 body {
   direction: rtl;
+  padding-right: 40px
 }
 
 .buttons {
@@ -11,8 +12,8 @@ body {
 
 button {
   padding: 5px;
-  margin: 0 5px;
-  min-width: 80px
+  margin: 0 4px;
+  min-width: 60px
 }
 
 section {
@@ -46,7 +47,7 @@ ol, ul {
 }
 .results {
   display: flex;
-  justify-content: space-between
+  justify-content: space-around;
 }
 
 .results span {
@@ -57,4 +58,14 @@ ol, ul {
 }
 .results .wrong {
   color: red;
+}
+
+.text-center {
+  text-align: center;
+}
+.bold {
+  font-weight: bold;
+}
+.hide {
+  display: none;
 }
