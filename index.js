@@ -3,12 +3,20 @@ function main() {
     slides: $('section'),
     buttons: '.buttons',
     enableLoop: false,
+    onmove: function onmove(event, index, oldIndex) {
+      manager.slides.hide();
+      manager.slides.eq(index).show();
+    },
+    onstart: function onstart(event, currentIndex) {
+      manager.move(currentIndex);
+    }
   });
-
+  
   $('.questions').on('click', '.correct', function() {
     $(this).css({ color: 'green' });
-  })
-
+  });
+  
+  manager.start();
 }
 
 const EVENTS = {
@@ -22,7 +30,7 @@ class SlideManager {
     // bind methods
     bindClassMethods(this.constructor.prototype, this);
     
-    this.init(options);
+    return this.init(options);
   }
   init(options) {
     // configuration
@@ -31,10 +39,20 @@ class SlideManager {
     // event handlers
     this.addEventHandlers();
     
-    // show 1st slide
-    this.next();
+    if (this.onstart) {
+      this.$on('start', this.onstart);
+    }
+    if (this.onmove) {
+      this.$on('move', this.onmove);
+    }
     
     return this;
+  }
+  start() {
+    if (this.current < 0) {
+      this.current = 0;
+    }
+    this.$emit('start', [this.current]);
   }
   addEventHandlers() {
     // button event handlers
@@ -47,7 +65,7 @@ class SlideManager {
       buttons.find(prevSel).on(click, prev);
       buttons.find(showAllSel).on(click, showAll);
      
-      this.pubsub.on('destroy', () => {
+      this.$on('destroy', () => {
         buttons.find(nextSel).off(click, next);
         buttons.find(prevSel).off(click, prev);
         buttons.find(showAllSel).off(click, showAll);
@@ -67,13 +85,11 @@ class SlideManager {
     if (index < 0) {
       index = len - 1;
     }
-
+  
+    var oldIndex = index;
     this.current = index;
-
-    this.slides.hide();
-    this.slides.eq(this.current).show();
-
     this.isShowAll = false;
+    this.$emit('move', [index, oldIndex]);
     
     return this;
   }
@@ -116,7 +132,13 @@ class SlideManager {
   
   destroy() {
     Object.assign(this, this.defaults);
-    this.pubsub.trigger('destroy');
+    this.$emit('destroy');
+  }
+  $emit(...args){
+    this.pubsub.trigger(...args);
+  }
+  $on(...args) {
+    this.pubsub.on(...args);
   }
 }
 
@@ -129,7 +151,9 @@ SlideManager.prototype.defaults = {
   events: EVENTS,
   nextSel: '.next',
   prevSel: '.prev',
-  showAllSel: '.showAll'
+  showAllSel: '.showAll',
+  onstart: null,
+  onmove: null
 }
 
 function bind(obj, methods) {

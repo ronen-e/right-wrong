@@ -33,4 +33,5 @@ ol > li {
 ol > li ul {
   padding: 0;
   list-style-type: disc;
+  cursor: pointer;
 }
