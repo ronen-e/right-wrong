@@ -40,3 +40,21 @@ ol, ul {
   -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-tap-highlight-color: transparent;
 }
+
+.footer {
+  text-align: center;
+}
+.results {
+  display: flex;
+  justify-content: space-between
+}
+
+.results span {
+  margin: 2px 15px;
+}
+.results .correct {
+  color: green;
+}
+.results .wrong {
+  color: red;
+}

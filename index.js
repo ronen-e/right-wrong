@@ -1,24 +1,51 @@
 function main() {
+  var answers = {
+    correct: 0,
+    wrong: 0
+  };
   
   // highlight click on correct answer
-  fx.highlight({color: 'green'});
+  fx.highlight({
+    'correct': 'green',
+    'wrong': 'red'
+  });
 
   // create and init slider
   var manager = new MySlideManager().start();
+  
+  fx.on('correct', (event) => fx.updateResult(event.type, answers));
+  fx.on('wrong', (event) => fx.updateResult(event.type, answers));
 }
 
 const EVENTS = {
   click: 'click'
 }
-
-let fx = {
-  highlight({ color }) {
-    $('.questions').on('click', '.correct', function() {
-      $(this).css({ color });
+let $events = $({});
+let fx = Object.create($events);
+Object.assign(fx, {
+  highlight({ correct, wrong }) {
+    $('.questions').on('click', '.answers li', function() {
+      var $el = $(this);
+      var color = $el.is('.correct') ? correct : wrong;
+      $el.css({ color: color });
+      
+      var event = (color == correct) ? 'correct' : 'wrong';
+      fx.trigger(event);
     });
     return this;
+  },
+  updateResult(result, answers) {
+    if (result == 'correct') {
+      answers.correct++;
+    }
+    if (result == 'wrong') {
+      answers.wrong++;
+    }
+
+    $('.results .correct').text(answers.correct);
+    $('.results .wrong').text(answers.wrong);
   }
-}
+});
 
 class SlideManager {
   constructor() {
