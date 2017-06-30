@@ -1,21 +1,31 @@
 function main() {
-  var manager = new SlideManager({
-    slides: $('section'),
-    buttons: '.buttons',
-    enableLoop: false,
-    onmove: function onmove(event, index, oldIndex) {
-      manager.slides.hide();
-      manager.slides.eq(index).show();
-    },
-    onstart: function onstart(event, currentIndex) {
-      manager.move(currentIndex);
-    }
-  });
+//   var manager = new SlideManager().init({
+//     slides: $('section'),
+//     buttons: '.buttons',
+//     enableLoop: false,
+//     onstart: function onstart(event, currentIndex) {
+//       manager.move(currentIndex);
+//     },
+//     onmove: function onmove(event, index, oldIndex) {
+//       manager.slides.hide();
+//       manager.slides.eq(index).show();
+//       manager.isShowAll = false;
+//     },
+//     onshowall: function onshowall(event) {
+//       let { move, current, slides } = manager;
+//       if (manager.isShowAll) {
+//         move(current);
+//       } else {
+//         slides.show();
+//         manager.isShowAll = true;
+//       }      
+//     }
+//   });
   
   $('.questions').on('click', '.correct', function() {
     $(this).css({ color: 'green' });
   });
-  
+  var manager = new MySlideManager();
   manager.start();
 }
 
@@ -24,27 +34,30 @@ const EVENTS = {
 }
 
 class SlideManager {
-  constructor(options = {}) {
+  constructor() {
     this.pubsub = $({});
-
-    // bind methods
-    bindClassMethods(this.constructor.prototype, this);
-    
-    return this.init(options);
   }
-  init(options) {
+  init(options={}) {
     // configuration
     Object.assign(this, this.defaults, options);
     
     // event handlers
     this.addEventHandlers();
     
+    if (this.oninit) {
+      this.$on('init', this.oninit);
+    }
     if (this.onstart) {
       this.$on('start', this.onstart);
     }
     if (this.onmove) {
       this.$on('move', this.onmove);
     }
+    if (this.onshowall) {
+      this.$on('showall', this.onshowall);
+    }
+    
+    this.$emit('init');
     
     return this;
   }
@@ -88,7 +101,6 @@ class SlideManager {
   
     var oldIndex = index;
     this.current = index;
-    this.isShowAll = false;
     this.$emit('move', [index, oldIndex]);
     
     return this;
@@ -110,12 +122,7 @@ class SlideManager {
     return this;
   }
   showAll() {
-    if (this.isShowAll) {
-      this.move(this.current);
-    } else {
-      this.slides.show();
-      this.isShowAll = true;
-    }
+    this.$emit('showall');
     return this;
   }
   
@@ -152,21 +159,115 @@ SlideManager.prototype.defaults = {
   nextSel: '.next',
   prevSel: '.prev',
   showAllSel: '.showAll',
+  oninit: null,
   onstart: null,
   onmove: null
 }
 
-function bind(obj, methods) {
-  for (let m of methods)
-    obj[m] = obj[m].bind(obj);
+class MySlideManager extends SlideManager {
+  constructor(options={}) {
+    super();
+    
+    var slider = this;
+    this.init({
+      slides: $('section'),
+      buttons: '.buttons',
+      enableLoop: false,
+      onstart: function onstart(event, currentIndex) {
+        slider.move(currentIndex);
+      },
+      onmove: function onmove(event, index, oldIndex) {
+        slider.slides.hide();
+        slider.slides.eq(index).show();
+        slider.isShowAll = false;
+      },
+      onshowall: function onshowall(event) {
+        let { move, current, slides } = slider;
+        if (slider.isShowAll) {
+          move(current);
+        } else {
+          slides.show();
+          slider.isShowAll = true;
+        }      
+      }
+    });
+    
+    return this;
+  }
 }
 
-function bindClassMethods(prototype, instance) {
-  var methods = Object.getOwnPropertyNames(prototype)
-		.filter(k => typeof prototype[k] == 'function')
-		.filter(k => k != 'constructor');
+/**
+ * Use boundMethod to bind all methods on the target.prototype
+ */
+function boundClass(target) {
+  // (Using reflect to get all keys including symbols)
+  let keys;
+  // Use Reflect if exists
+  if (false && typeof Reflect !== 'undefined' && typeof Reflect.ownKeys === 'function') {
+    keys = Reflect.ownKeys(target.prototype);
+  } else {
+    keys = Object.getOwnPropertyNames(target.prototype);
+    // use symbols if support is provided
+    if (typeof Object.getOwnPropertySymbols === 'function') {
+      keys = keys.concat(Object.getOwnPropertySymbols(target.prototype));
+    }
+  }
+  
+  keys.forEach(key => {
+    // Ignore special case target method
+    if (key === 'constructor') {
+      return;
+    }
 
-  bind(instance, methods);
+    let descriptor = Object.getOwnPropertyDescriptor(target.prototype, key);
+
+    // Only methods need binding
+    if (typeof descriptor.value === 'function') {
+      Object.defineProperty(target.prototype, key, boundMethod(target, key, descriptor));
+    }
+  });
+  return target;
 }
+
+/**
+ * Return a descriptor removing the value and returning a getter
+ * The getter will return a .bind version of the function
+ * and memoize the result against a symbol on the instance
+ */
+function boundMethod(target, key, descriptor) {
+  let fn = descriptor.value;
+  if (typeof fn !== 'function') {
+    throw new Error(`@autobind decorator can only be applied to methods not: ${typeof fn}`);
+  }
+
+  // In IE11 calling Object.defineProperty has a side-effect of evaluating the
+  // getter for the property which is being replaced. This causes infinite
+  // recursion and an "Out of stack space" error.
+  let definingProperty = false;
+
+  return {
+    configurable: true,
+    get() {
+      if (definingProperty || this === target.prototype || this.hasOwnProperty(key)) {
+        return fn;
+      }
+
+      let boundFn = fn.bind(this);
+      definingProperty = true;
+      Object.defineProperty(this, key, {
+        value: boundFn,
+        configurable: true,
+        writable: true
+      });
+      definingProperty = false;
+      return boundFn;
+    }
+  };
+}
+
+// bind methods
+boundClass(SlideManager);
+boundClass(MySlideManager);
+
 
 main();
