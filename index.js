@@ -1,32 +1,12 @@
 function main() {
-//   var manager = new SlideManager().init({
-//     slides: $('section'),
-//     buttons: '.buttons',
-//     enableLoop: false,
-//     onstart: function onstart(event, currentIndex) {
-//       manager.move(currentIndex);
-//     },
-//     onmove: function onmove(event, index, oldIndex) {
-//       manager.slides.hide();
-//       manager.slides.eq(index).show();
-//       manager.isShowAll = false;
-//     },
-//     onshowall: function onshowall(event) {
-//       let { move, current, slides } = manager;
-//       if (manager.isShowAll) {
-//         move(current);
-//       } else {
-//         slides.show();
-//         manager.isShowAll = true;
-//       }      
-//     }
-//   });
   
+  // highlight click on correct answer
   $('.questions').on('click', '.correct', function() {
     $(this).css({ color: 'green' });
   });
-  var manager = new MySlideManager();
-  manager.start();
+
+  // create and init slider
+  var manager = new MySlideManager().start();
 }
 
 const EVENTS = {
@@ -66,6 +46,8 @@ class SlideManager {
       this.current = 0;
     }
     this.$emit('start', [this.current]);
+    
+    return this;
   }
   addEventHandlers() {
     // button event handlers
