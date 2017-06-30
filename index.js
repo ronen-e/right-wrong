@@ -25,7 +25,7 @@ class SlideManager {
 
     // show 1st slide
     this.next();
-    
+
     return this;
   }
   move(index) {
@@ -46,12 +46,18 @@ class SlideManager {
     this.slides.eq(this.current).show();
     
     this.isShowAll = false;
+
+    return this;
   }
   next() {
     this.move(this.current + 1);
+
+    return this;
   }
   prev() {
     this.move(this.current - 1);
+
+    return this;
   }
   showAll() {
     if (this.isShowAll) {
@@ -60,9 +66,8 @@ class SlideManager {
       this.slides.show();
       this.isShowAll = true;
     }
-    
+		return this;
   }
 }
 
 main();
-
