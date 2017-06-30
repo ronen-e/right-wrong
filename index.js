@@ -1,5 +1,9 @@
 function main() {
-  var manager = new SlideManager($('section')).init();
+  var manager = new SlideManager({
+    slides: $('section'),
+    buttons: '.buttons',
+    enableLoop: false,
+  });
 }
 
 const EVENTS = {
@@ -7,61 +11,79 @@ const EVENTS = {
 }
 
 class SlideManager {
-  constructor(slides) {
-    this.slides = slides;
-    this.current = -1;
-    this.isShowAll = false;
-    
-    this.next = this.next.bind(this);
-    this.prev = this.prev.bind(this);
-    this.showAll = this.showAll.bind(this);
-    this.destroy =  this.destroy.bind(this);
-  }
-  init() {
-    // event handlers
-    var { click } = EVENTS;
-    $('#next').on(click, this.next);
-    $('#prev').on(click, this.prev);
-    $('#all').on(click, this.showAll);
+  constructor(options = {}) {
+    this.pubsub = $({});
 
+    // bind methods
+    bindClassMethods(this.constructor.prototype, this);
+    
+    this.init(options);
+  }
+  init(options) {
+    // configuration
+    Object.assign(this, this.defaults, options);
+    
+    // event handlers
+    this.addEventHandlers();
+    
     // show 1st slide
     this.next();
     
     return this;
   }
+  addEventHandlers() {
+    // button event handlers
+    if (this.buttons !== null) {
+      let { click } = this.events;
+      let { nextSel, prevSel, showAllSel, next, prev, showAll } = this;
+      let buttons = $(this.buttons);
+
+      buttons.find(nextSel).on(click, next);
+      buttons.find(prevSel).on(click, prev);
+      buttons.find(showAllSel).on(click, showAll);
+     
+      this.pubsub.on('destroy', () => {
+        buttons.find(nextSel).off(click, next);
+        buttons.find(prevSel).off(click, prev);
+        buttons.find(showAllSel).off(click, showAll);
+      });
+    }    
+  }
   move(index) {
-    if (this.slides.length === 0) {
+    var len = this.slides.length;
+
+    if (len === 0) {
       return;
     }
     
-    var len = this.slides.length;
     if (index >= len) {
       index = 0;
     }
     if (index < 0) {
       index = len - 1;
     }
-    
+
     this.current = index;
+
     this.slides.hide();
     this.slides.eq(this.current).show();
-    
+
     this.isShowAll = false;
     
     return this;
   }
   next() {
-    var to = this.current + 1;
-    if (to < this.slides.length){
-      this.move(to);
+    var idx = this.current + 1;
+    if (this.isMoveAllowed(idx)){
+      this.move(idx);
     }
     
     return this;
   }
   prev() {
-    var to = this.current - 1;
-    if (to >= 0){
-      this.move(to);
+    var idx = this.current - 1;
+    if (this.isMoveAllowed(idx)){
+      this.move(idx);
     }
     
     return this;
@@ -76,18 +98,46 @@ class SlideManager {
     return this;
   }
   
-  destroy() {
-    this.slides = [];
-    this.current = -1;
-    this.isShowAll = false;
-        
-    // event handlers
-    var { click } = EVENTS;
-    $('#next').off(click, this.next);
-    $('#prev').off(click, this.prev);
-    $('#all').off(click, this.showAll);
+  isMoveAllowed(index) {
+    if (this.enableLoop) {
+      return true;
+    }
+    if (index >= 0 && index < this.slides.length) {
+      return true;
+    }
     
+    return false;
   }
+  
+  destroy() {
+    Object.assign(this, this.defaults);
+    this.pubsub.trigger('destroy');
+  }
+}
+
+SlideManager.prototype.defaults = {
+  slides: [],
+  buttons: null,
+  current: -1,
+  isShowAll: false,
+  enableLoop: false,
+  events: EVENTS,
+  nextSel: '.next',
+  prevSel: '.prev',
+  showAllSel: '.showAll'
+}
+
+function bind(obj, methods) {
+  for (let m of methods)
+    obj[m] = obj[m].bind(obj);
+}
+
+function bindClassMethods(prototype, instance) {
+  var methods = Object.getOwnPropertyNames(prototype)
+		.filter(k => typeof prototype[k] == 'function')
+		.filter(k => k != 'constructor');
+
+  bind(instance, methods);
 }
 
 main();
