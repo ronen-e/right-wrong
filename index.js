@@ -51,12 +51,18 @@ class SlideManager {
     return this;
   }
   next() {
-    this.move(this.current + 1);
+    var to = this.current + 1;
+    if (to < this.slides.length){
+      this.move(to);
+    }
     
     return this;
   }
   prev() {
-    this.move(this.current - 1);
+    var to = this.current - 1;
+    if (to >= 0){
+      this.move(to);
+    }
     
     return this;
   }
