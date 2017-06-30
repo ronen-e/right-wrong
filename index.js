@@ -1,9 +1,7 @@
 function main() {
   
   // highlight click on correct answer
-  $('.questions').on('click', '.correct', function() {
-    $(this).css({ color: 'green' });
-  });
+  fx.highlight({color: 'green'});
 
   // create and init slider
   var manager = new MySlideManager().start();
@@ -11,6 +9,15 @@ function main() {
 
 const EVENTS = {
   click: 'click'
+}
+
+let fx = {
+  highlight({ color }) {
+    $('.questions').on('click', '.correct', function() {
+      $(this).css({ color });
+    });
+    return this;
+  }
 }
 
 class SlideManager {
