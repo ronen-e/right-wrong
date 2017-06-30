@@ -4,6 +4,11 @@ function main() {
     buttons: '.buttons',
     enableLoop: false,
   });
+
+  $('.questions').on('click', '.correct', function() {
+    $(this).css({ color: 'green' });
+  })
+
 }
 
 const EVENTS = {
