@@ -1,5 +1,5 @@
 function main() {
-  new SlideManager($('section')).init();
+  var manager = new SlideManager($('section')).init();
 }
 
 const EVENTS = {
@@ -15,6 +15,7 @@ class SlideManager {
     this.next = this.next.bind(this);
     this.prev = this.prev.bind(this);
     this.showAll = this.showAll.bind(this);
+    this.destroy =  this.destroy.bind(this);
   }
   init() {
     // event handlers
@@ -25,7 +26,7 @@ class SlideManager {
 
     // show 1st slide
     this.next();
-
+    
     return this;
   }
   move(index) {
@@ -46,17 +47,17 @@ class SlideManager {
     this.slides.eq(this.current).show();
     
     this.isShowAll = false;
-
+    
     return this;
   }
   next() {
     this.move(this.current + 1);
-
+    
     return this;
   }
   prev() {
     this.move(this.current - 1);
-
+    
     return this;
   }
   showAll() {
@@ -66,7 +67,20 @@ class SlideManager {
       this.slides.show();
       this.isShowAll = true;
     }
-		return this;
+    return this;
+  }
+  
+  destroy() {
+    this.slides = [];
+    this.current = -1;
+    this.isShowAll = false;
+        
+    // event handlers
+    var { click } = EVENTS;
+    $('#next').off(click, this.next);
+    $('#prev').off(click, this.prev);
+    $('#all').off(click, this.showAll);
+    
   }
 }
 
