@@ -1,3 +1,67 @@
+function Question(text, answers, options={}) {
+  answers = answers.map(answer => {
+    return typeof answer !== 'object' ? [answer] : answer;
+  });
+  
+  return Object.assign({
+    text: text,
+    answers: answers.map((answer) => ({text: answer[0], correct: !!answer[1]})),
+  }, options);
+}
+  
+
+var data = {
+  slides: [
+    {
+      title: ['ספר בראשית'],
+    },
+    {
+      title: ['חלק ראשון', 'שאלות על אדם וחווה'],
+      questions: [
+        new Question('במה התלבשו אדם וחווה?', [
+            ['בעלי תאנה', true ],
+            'בעלי זית',
+            'בעלי דקל',          
+        ]),
+        new Question('מה החטא שעשו אדם וחווה?', [
+            ['הם אכלו מפרי עץ הדעת', true],
+            ['הם לכלכו את גן עדן'],
+            ['הם בנו פסלים והשתחוו להם'],          
+        ]),
+        new Question('איזה עונש קיבלה חווה?', [
+            ['יהיה לה קשה ללדת', true],
+            ['היא הפכה לנציב מלח'],
+            ['אבד לה הזכרון'],          
+        ]),
+      ]
+    },
+    {
+      title: ['חלק שני', 'שאלות על קין והבל:'],
+      questions: [
+        new Question('מי היה האח הבכור?', [
+          ['קין', true],
+          ['הבל']
+        ]),
+        new Question('מי היה האח הצעיר ביותר', [
+          ['קין'],
+          ['הבל'],
+          ['שת', true]
+        ], { bonus: true}),
+        new Question('מה היה המקצוע של קין והבל?', [
+          ['קין - עבודת אדמה, הבל - רועה צאן', true],
+          ['קין - רועה צאן, הבל - עבודת אדמה'],
+          ['קין - טבח, הבל - זמר']
+        ]),
+        new Question('איזה חטא עשה קין?', [
+          ['הוא קילל את אמו'],
+          ['הוא הרג את הבל', true],
+          ['הוא הרג את אביו']
+        ]),
+      ]
+    }
+  ]
+}
+
 function main() {
   var answers = {
     correct: 0,
