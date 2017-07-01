@@ -4,10 +4,58 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width">
 		<title>Right Wrong</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
 		<script src="https://code.jquery.com/jquery-2.0.3.js"></script>
+		<script src="autobind.js"></script>
 		<link rel="stylesheet" href="index.css" />
+		<script type="text/x-template" id="x-slider">
+      <div>
+        <x-slide v-for="slide in slides"
+          :data="slide"
+          :title="slide.title"
+          :questions="slide.questions">
+        </x-slide>
+      </div>
+    </script>    
+    <script type="text/x-template" id="x-slide">
+      <section>
+        <x-slide-header :title="title" />
+        <x-slide-body :questions="questions" />
+      </section>
+    </script>
+    <script type="text/x-template" id="x-slide-header">
+      <header>
+        <p v-for="line in title">{{line}}</p> 
+      </header>
+    </script>
+    <script type="text/x-template" id="x-slide-body">
+      <article>
+        <ol class="questions">
+          <li is="x-slide-question" v-for="question in questions" 
+            :text="question.text" 
+            :answers="question.answers"
+            :bonus="question.bonus">
+					</li>
+        </ol>
+      </article>
+    </script>
+    <script type="text/x-template" id="x-slide-question">
+      <li>
+        <span class="bold" v-if="bonus">בונוס - </span>{{text}}
+        <ul class="answers">
+          <li is="x-slide-answer" v-for="answer in answers"
+            :text="answer.text"
+            :correct="answer.correct"
+          ></li>
+        </ul>
+      </li>
+    </script>
+    <script type="text/x-template" id="x-slide-answer">
+      <li :class="{'correct': correct}">{{text}}</li>
+    </script>
 	</head>
   <body>
+		<div id="vue-slider"></div>
     <div class="buttons">
       <button class="next">הבא</button>
       <button class="prev">הקודם</button>

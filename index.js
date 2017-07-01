@@ -8,7 +8,6 @@ function Question(text, answers, options={}) {
     answers: answers.map((answer) => ({text: answer[0], correct: !!answer[1]})),
   }, options);
 }
-  
 
 var data = {
   slides: [
@@ -16,7 +15,7 @@ var data = {
       title: ['ספר בראשית'],
     },
     {
-      title: ['חלק ראשון', 'שאלות על אדם וחווה'],
+      title: ['חלק ראשון:', 'שאלות על אדם וחווה'],
       questions: [
         new Question('במה התלבשו אדם וחווה?', [
             ['בעלי תאנה', true ],
@@ -36,7 +35,7 @@ var data = {
       ]
     },
     {
-      title: ['חלק שני', 'שאלות על קין והבל:'],
+      title: ['חלק שני:', 'שאלות על קין והבל'],
       questions: [
         new Question('מי היה האח הבכור?', [
           ['קין', true],
@@ -58,6 +57,51 @@ var data = {
           ['הוא הרג את אביו']
         ]),
       ]
+    },
+    {
+      title: ['חלק שלישי:', 'נח והמבול'],
+      questions: [
+        new Question('למה נח נבחר ע"י אלוהים? כלומר מדוע "מצא חן בעיני ה"?', [
+          ['כי הוא היה צדיק', true],
+          ['כי הוא היה חכם'],
+          ['כי הוא היה עשיר']
+        ]),
+        new Question('מי הייתה אשת נח?', [
+          ['שרה', true],
+          ['זלפה'],
+          ['נעמה']
+        ]),
+        new Question('מי היו ילדיו של נח?', [
+          ['שֵׁם, חַם וְקַר'],
+          ['שֵׁם חַם וְיָפֶת', true],
+          ['שֵׁם חַם וְיִפְעַת']
+        ]),
+        new Question('למה אלוהים עשה מבול?', [
+          ['כי אנשים היו רעים', true],
+          ['כי הייתה בצורת גדולה'],
+          ['כי אנשים רצו לשחות']
+        ]),
+      ]
+    },
+    {
+      title: ['חלק רביעי:', 'מגדל בבל'],
+      questions: [
+        new Question('למה בנו את מגדל בבל?', [
+          ['כי בני האדם רצו להגיע לשמיים', true],
+          ['כי בני האדם רצו לראות למרחקים'],
+          ['כי בני האדם רצו לראות את אלוהים']
+        ]),
+        new Question('למה אלוהים כעס על בניית המגדל?', [
+          ['כי בני האדם רצו לראותו'],
+          ['כי המגדל חסם את הנוף'],
+          ['כי דבר לא יהיה מעבר לכוחם', true]
+        ]),
+        new Question('מה היה העונש שנתן אלוהים לבני האדם על בניית המגדל?', [
+          ['אלוהים בילבל את שפתם', true],
+          ['אלוהים זרק עליהם ברקים'],
+          ['אלוהים הפך אותם לחיות בר']
+        ]),
+      ]
     }
   ]
 }
@@ -73,7 +117,8 @@ function main() {
   
   fx.on('correct', (event) => fx.updateResult(event.type, answers));
   fx.on('wrong', (event) => fx.updateResult(event.type, answers));
-  $('.questions').on('click', '.answers li', function(event) {
+  $('body').on('click', '.questions .answers li', function(event) {
+    
     var el = this;
     var $el = $(this);
     if ($el.data('handled')) {
@@ -134,12 +179,12 @@ class SlideManager {
     Object.assign(this, this.defaults, options);
 
     // event handlers
-    this.addEventHandlers();
+//     this.addEventHandlers();
     
     for (let prop in this) {
-      var val = this[prop];
-      if (prop.startsWith('on') && typeof val == 'function') {
-        this.$on(prop.substr('on'.length), val);
+      var fn = this[prop];
+      if (prop.startsWith('on') && typeof fn == 'function') {
+        this.$on(prop.substr('on'.length), fn);
       }
     }
     
@@ -155,24 +200,7 @@ class SlideManager {
     
     return this;
   }
-  addEventHandlers() {
-    // button event handlers
-    if (this.buttons !== null) {
-      let { click } = this.events;
-      let { nextSel, prevSel, showAllSel, next, prev, showAll } = this;
-      let buttons = $(this.buttons);
 
-      buttons.find(nextSel).on(click, next);
-      buttons.find(prevSel).on(click, prev);
-      buttons.find(showAllSel).on(click, showAll);
-     
-      this.$on('destroy', () => {
-        buttons.find(nextSel).off(click, next);
-        buttons.find(prevSel).off(click, prev);
-        buttons.find(showAllSel).off(click, showAll);
-      });
-    }    
-  }
   move(index) {
     var len = this.slides.length;
 
@@ -265,6 +293,9 @@ class MySlideManager extends SlideManager {
       slides: $('section'),
       buttons: '.buttons',
       enableLoop: false,
+      oninit: function oninit() {
+        slider.addEventHandlers();
+      },
       onstart: function onstart(event, currentIndex) {
         slider.move(currentIndex);
       },
@@ -294,12 +325,23 @@ class MySlideManager extends SlideManager {
   }
   
   addEventHandlers() {
-    super.addEventHandlers();
-    var { click } = EVENTS;
-    $(this.showResultsSelector).on(click, this.showResults);
-    this.$on('destroy', () => this.off(click, this.showResults));
-    
-    return this;
+    // button event handlers
+    let { click } = this.events;
+    let { nextSel, prevSel, showAllSel, showResultsSelector,
+         next, prev, showAll, showResults } = this;
+    let buttons = $(this.buttons);
+
+    buttons.find(nextSel).on(click, next);
+    buttons.find(prevSel).on(click, prev);
+    buttons.find(showAllSel).on(click, showAll);
+    buttons.find(showResultsSelector).on(click, showResults);
+
+    this.$on('destroy', () => {
+      buttons.find(nextSel).off(click, next);
+      buttons.find(prevSel).off(click, prev);
+      buttons.find(showAllSel).off(click, showAll);
+      buttons.find(showResultsSelector).off(click, showResults);
+    });
   }
   
   showResults() {
@@ -307,78 +349,49 @@ class MySlideManager extends SlideManager {
     return this;
   }
 }
-/**
- * Use boundMethod to bind all methods on the target.prototype
- */
-function boundClass(target) {
-  // (Using reflect to get all keys including symbols)
-  let keys;
-  // Use Reflect if exists
-  if (false && typeof Reflect !== 'undefined' && typeof Reflect.ownKeys === 'function') {
-    keys = Reflect.ownKeys(target.prototype);
-  } else {
-    keys = Object.getOwnPropertyNames(target.prototype);
-    // use symbols if support is provided
-    if (typeof Object.getOwnPropertySymbols === 'function') {
-      keys = keys.concat(Object.getOwnPropertySymbols(target.prototype));
-    }
-  }
-  
-  keys.forEach(key => {
-    // Ignore special case target method
-    if (key === 'constructor') {
-      return;
-    }
-
-    let descriptor = Object.getOwnPropertyDescriptor(target.prototype, key);
-
-    // Only methods need binding
-    if (typeof descriptor.value === 'function') {
-      Object.defineProperty(target.prototype, key, boundMethod(target, key, descriptor));
-    }
-  });
-  return target;
-}
-
-/**
- * Return a descriptor removing the value and returning a getter
- * The getter will return a .bind version of the function
- * and memoize the result against a symbol on the instance
- */
-function boundMethod(target, key, descriptor) {
-  let fn = descriptor.value;
-  if (typeof fn !== 'function') {
-    throw new Error(`@autobind decorator can only be applied to methods not: ${typeof fn}`);
-  }
-
-  // In IE11 calling Object.defineProperty has a side-effect of evaluating the
-  // getter for the property which is being replaced. This causes infinite
-  // recursion and an "Out of stack space" error.
-  let definingProperty = false;
-
-  return {
-    configurable: true,
-    get() {
-      if (definingProperty || this === target.prototype || this.hasOwnProperty(key)) {
-        return fn;
-      }
-
-      let boundFn = fn.bind(this);
-      definingProperty = true;
-      Object.defineProperty(this, key, {
-        value: boundFn,
-        configurable: true,
-        writable: true
-      });
-      definingProperty = false;
-      return boundFn;
-    }
-  };
-}
 
 // bind methods
 boundClass(SlideManager);
 boundClass(MySlideManager);
 
+// Vue js
+function initVue(){
+  Vue.component('x-slide', {
+    template: '#x-slide',
+    props: ['data', 'title', 'questions'],
+    data: function() { return {} }
+  });
+  Vue.component('x-slide-header', {
+    template: '#x-slide-header',
+    props: ['title'],
+    data: function() { return {} },
+  });
+  Vue.component('x-slide-body', {
+    template: '#x-slide-body',
+    props: ['questions'],
+    data: function() { return {}; },
+  });
+  Vue.component('x-slide-question', {
+    template: '#x-slide-question',
+    props: ['text', 'answers', 'bonus'],
+    data: function() { return {}; },
+  });
+  Vue.component('x-slide-answer', {
+    template: '#x-slide-answer',
+    props: ['text', 'correct'],
+    data: function() { return {}; },
+  });
+  new Vue({
+    el: '#vue-slider',
+    template: '#x-slider',
+    data: function() {
+      return {
+        data: data,
+        slides: data.slides,
+      }
+    }
+  })
+}
 
 main();
+initVue();
