@@ -5,7 +5,9 @@ function main() {
   var manager = new MySlideManager();
   
   initVue({ manager: manager, answers: answers });
+  SoundEffect.init();
   PubSub.subscribe(ANSWER, (type, payload) => answers.update(payload));
+  PubSub.subscribe(ANSWER, (type, payload) => SoundEffect(payload));
 }
 
 let types = {
@@ -299,6 +301,24 @@ const translations = {
 }
 function translate(path) {
   return _.get(translations, path, path);
+}
+
+function SoundEffect(payload) {
+  try {
+    var player = payload[CORRECT] ? SoundEffect[CORRECT] : SoundEffect[WRONG];
+    player.currentTime = 1;
+    player.play();
+  } catch (e) {}
+}
+
+SoundEffect.init = function initSound() {
+  try {
+    SoundEffect[CORRECT] = new Audio('http://audiosoundclips.com/wp-content/uploads/2014/02/Slidewhistle.mp3');
+    SoundEffect[WRONG] = new Audio('http://audiosoundclips.com/wp-content/uploads/2014/02/Bop2.mp3');   
+  }
+  finally {
+    return SoundEffect;
+  }
 }
 
 main();
