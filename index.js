@@ -4,40 +4,10 @@ function main() {
   // create and init slider
   var manager = new MySlideManager().start();
   
-  fx.on('correct', (event) => fx.updateResult(event.type, answers));
-  fx.on('wrong', (event) => fx.updateResult(event.type, answers));
-  $('body').on('click', '.questions .answers li', handleAnswer);  
+  fx.on(EVENTS.correct, (event) => fx.updateResult(event.type, answers));
+  fx.on(EVENTS.wrong, (event) => fx.updateResult(event.type, answers));
   
-}
-function handleAnswer(event) {
-  var el = this;
-  var $el = $(this);
-  if ($el.data('handled')) {
-    return;
-  }
-  var { correct, wrong } = COLORS;
-  var color = $el.is('.correct') ? correct : wrong;
-
-  // highlight click on correct answer
-  fx.highlight({
-    color: color,
-    el: el
-  });
-
-  var eventType = (color == correct) ? EVENTS.correct : EVENTS.wrong;
-  fx.trigger(eventType);
-  $el.data('handled', true);
-}
-
-function Question(text, answers, options={}) {
-  answers = answers.map(answer => {
-    return typeof answer !== 'object' ? [answer] : answer;
-  });
-  
-  return Object.assign({
-    text: text,
-    answers: answers.map((answer) => ({text: answer[0], correct: !!answer[1]})),
-  }, options);
+  initVue({manager, answers});
 }
 
 var answers = {
@@ -45,132 +15,19 @@ var answers = {
   wrong: 0
 };
 
-var data = {
-  slides: [
-    {
-      title: ['ספר בראשית'],
-    },
-    {
-      title: ['חלק ראשון:', 'שאלות על אדם וחווה'],
-      questions: [
-        new Question('במה התלבשו אדם וחווה?', [
-            ['בעלי תאנה', true ],
-            'בעלי זית',
-            'בעלי דקל',          
-        ]),
-        new Question('מה החטא שעשו אדם וחווה?', [
-            ['הם אכלו מפרי עץ הדעת', true],
-            ['הם לכלכו את גן עדן'],
-            ['הם בנו פסלים והשתחוו להם'],          
-        ]),
-        new Question('איזה עונש קיבלה חווה?', [
-            ['יהיה לה קשה ללדת', true],
-            ['היא הפכה לנציב מלח'],
-            ['אבד לה הזכרון'],          
-        ]),
-      ]
-    },
-    {
-      title: ['חלק שני:', 'שאלות על קין והבל'],
-      questions: [
-        new Question('מי היה האח הבכור?', [
-          ['קין', true],
-          ['הבל']
-        ]),
-        new Question('מי היה האח הצעיר ביותר', [
-          ['קין'],
-          ['הבל'],
-          ['שת', true]
-        ], { bonus: true}),
-        new Question('מה היה המקצוע של קין והבל?', [
-          ['קין - עבודת אדמה, הבל - רועה צאן', true],
-          ['קין - רועה צאן, הבל - עבודת אדמה'],
-          ['קין - טבח, הבל - זמר']
-        ]),
-        new Question('איזה חטא עשה קין?', [
-          ['הוא קילל את אמו'],
-          ['הוא הרג את הבל', true],
-          ['הוא הרג את אביו']
-        ]),
-      ]
-    },
-    {
-      title: ['חלק שלישי:', 'נח והמבול'],
-      questions: [
-        new Question('למה נח נבחר ע"י אלוהים? כלומר מדוע "מצא חן בעיני ה"?', [
-          ['כי הוא היה צדיק', true],
-          ['כי הוא היה חכם'],
-          ['כי הוא היה עשיר']
-        ]),
-        new Question('מי הייתה אשת נח?', [
-          ['שרה', true],
-          ['זלפה'],
-          ['נעמה']
-        ]),
-        new Question('מי היו ילדיו של נח?', [
-          ['שֵׁם, חַם וְקַר'],
-          ['שֵׁם חַם וְיָפֶת', true],
-          ['שֵׁם חַם וְיִפְעַת']
-        ]),
-        new Question('למה אלוהים עשה מבול?', [
-          ['כי אנשים היו רעים', true],
-          ['כי הייתה בצורת גדולה'],
-          ['כי אנשים רצו לשחות']
-        ]),
-      ]
-    },
-    {
-      title: ['חלק רביעי:', 'מגדל בבל'],
-      questions: [
-        new Question('למה בנו את מגדל בבל?', [
-          ['כי בני האדם רצו להגיע לשמיים', true],
-          ['כי בני האדם רצו לראות למרחקים'],
-          ['כי בני האדם רצו לראות את אלוהים']
-        ]),
-        new Question('למה אלוהים כעס על בניית המגדל?', [
-          ['כי בני האדם רצו לראותו'],
-          ['כי המגדל חסם את הנוף'],
-          ['כי דבר לא יהיה מעבר לכוחם', true]
-        ]),
-        new Question('מה היה העונש שנתן אלוהים לבני האדם על בניית המגדל?', [
-          ['אלוהים בילבל את שפתם', true],
-          ['אלוהים זרק עליהם ברקים'],
-          ['אלוהים הפך אותם לחיות בר']
-        ]),
-      ]
-    }
-  ]
-}
-
-
-
 const EVENTS = {
   click: 'click',
   correct: 'correct',
   wrong: 'wrong'
 }
-const COLORS = {
-  correct: 'green',
-  wrong: 'red'
-};
-let $events = $({});
-let fx = Object.create($events);
+
+let fx = Object.create($({}));
 Object.assign(fx, {
-  highlight({ color, el }) {
-    $(el).css({ color: color });
-
-    return this;
-  },
-  updateResult(result, answers) {
-    if (result == 'correct') {
-      answers.correct++;
+  updateResult(type, answers) {
+    switch(type) {
+      case EVENTS.correct: answers.correct++; break;
+      case EVENTS.wrong: answers.wrong++; break;
     }
-    if (result == 'wrong') {
-      answers.wrong++;
-    }
-
-    $('.results .correct').text(answers.correct);
-    $('.results .wrong').text(answers.wrong);
   }
 });
 
@@ -182,9 +39,6 @@ class SlideManager {
     // configuration
     Object.assign(this, this.defaults, options);
 
-    // event handlers
-//     this.addEventHandlers();
-    
     for (let prop in this) {
       var fn = this[prop];
       if (prop.startsWith('on') && typeof fn == 'function') {
@@ -274,14 +128,9 @@ class SlideManager {
 
 SlideManager.prototype.defaults = {
   slides: [],
-  buttons: null,
   current: -1,
   isShowAll: false,
   enableLoop: false,
-  events: EVENTS,
-  nextSel: '.next',
-  prevSel: '.prev',
-  showAllSel: '.showAll',
   oninit: null,
   onstart: null,
   onmove: null,
@@ -289,23 +138,19 @@ SlideManager.prototype.defaults = {
 }
 
 class MySlideManager extends SlideManager {
-  constructor(options={}) {
+  constructor() {
     super();
     
     var slider = this;
     slider.init({
-      slides: $('section'),
-      buttons: '.buttons',
+      slides: data.slides,
       enableLoop: false,
       oninit: function oninit() {
-        slider.addEventHandlers();
       },
       onstart: function onstart(event, currentIndex) {
         slider.move(currentIndex);
       },
       onmove: function onmove(event, index, oldIndex) {
-        slider.slides.hide();
-        slider.slides.eq(index).show();
         slider.isShowAll = false;
       },
       onshowall: function onshowall(event) {
@@ -313,39 +158,17 @@ class MySlideManager extends SlideManager {
         if (slider.isShowAll) {
           move(current);
         } else {
-          slides.show();
           slider.isShowAll = true;
         }
       },
 
-      showResultsSelector: '.showResults',
-      resultsSelector: '.total',
+      isShowResults: false,
       onshowresults: function onshowresults(event) {
-        $(slider.resultsSelector).toggle();
+        slider.isShowResults = !slider.isShowResults;
       }
     });
     
     return this;
-  }
-  
-  addEventHandlers() {
-    // button event handlers
-    let { click } = this.events;
-    let { nextSel, prevSel, showAllSel, showResultsSelector,
-         next, prev, showAll, showResults } = this;
-    let buttons = $(this.buttons);
-
-    buttons.find(nextSel).on(click, next);
-    buttons.find(prevSel).on(click, prev);
-    buttons.find(showAllSel).on(click, showAll);
-    buttons.find(showResultsSelector).on(click, showResults);
-
-    this.$on('destroy', () => {
-      buttons.find(nextSel).off(click, next);
-      buttons.find(prevSel).off(click, prev);
-      buttons.find(showAllSel).off(click, showAll);
-      buttons.find(showResultsSelector).off(click, showResults);
-    });
   }
   
   showResults() {
@@ -359,7 +182,7 @@ boundClass(SlideManager);
 boundClass(MySlideManager);
 
 // Vue js
-function initVue(){
+function initVue(state){
   Vue.component('x-slide', {
     template: '#x-slide',
     props: ['title', 'questions'],
@@ -397,6 +220,10 @@ function initVue(){
         clicked: false,
       }; 
     },
+    created() {
+      this.$on(EVENTS.correct, () => fx.trigger(EVENTS.correct, answers));
+      this.$on(EVENTS.wrong, () => fx.trigger(EVENTS.wrong, answers));
+    },
     methods: {
       clickHandler() {
         
@@ -409,7 +236,9 @@ function initVue(){
         this.clicked = true;
         
         if (this.correct) {
-          this.$emit('correct');
+          this.$emit(EVENTS.correct);
+        } else {
+          this.$emit(EVENTS.wrong)
         }
       },
     }
@@ -422,12 +251,41 @@ function initVue(){
       return {
         data: data,
         slides: data.slides,
+        manager: state.manager
       }
     },
+    methods: {
+      isShow(index) {
+        return index == this.manager.current || this.manager.isShowAll;
+      }
+    }
   });
   
-  return App;
+  var Footer = new Vue({
+    el: '#total',
+    data: function() {
+      return {
+        answers: answers,
+        manager: state.manager
+      }
+    },
+    computed: {
+      correct: function(){ return this.answers.correct; },
+      wrong: function(){ return this.answers.wrong; }
+    }
+  });
+  
+  var Buttons = new Vue({
+    el: '#buttons',
+    data: function() { return { }; },
+    methods: {
+      next: () => state.manager.next(),
+      prev: () => state.manager.prev(),
+      showAll: () => state.manager.showAll(),
+      showResults: () => state.manager.showResults()
+    }
+  });
+ 
 }
 
 main();
-initVue();

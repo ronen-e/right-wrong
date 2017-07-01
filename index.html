@@ -8,12 +8,13 @@
 		<script src="https://code.jquery.com/jquery-2.0.3.js"></script>
 		<script src="autobind.js"></script>
 		<link rel="stylesheet" href="index.css" />
-		<script type="text/x-template" id="x-slider">
+    <script type="text/x-template" id="x-slider">
       <div>
-        <x-slide v-for="slide in slides"
-          :data="slide"
+        <x-slide v-for="(slide, index) in slides"
+          v-show="isShow(index)"
           :title="slide.title"
-          :questions="slide.questions">
+          :questions="slide.questions"
+          >
         </x-slide>
       </div>
     </script>    
@@ -32,10 +33,10 @@
       <article>
         <ol class="questions">
           <li is="x-slide-question" v-for="question in questions" 
-            :text="question.text" 
+            :text="question.text"
             :answers="question.answers"
-            :bonus="question.bonus">
-					</li>
+            :bonus="question.bonus"
+            ></li>
         </ol>
       </article>
     </script>
@@ -46,184 +47,41 @@
           <li is="x-slide-answer" v-for="answer in answers"
             :text="answer.text"
             :correct="answer.correct"
+            :handled="handled"
+            @correct="correct"
           ></li>
         </ul>
       </li>
     </script>
     <script type="text/x-template" id="x-slide-answer">
-      <li :class="{'correct': correct}">{{text}}</li>
+      <li :class="{correct, clicked}" @click.prevent.stop="clickHandler">
+        {{text}}
+      </li>
     </script>
 	</head>
   <body>
-		<div id="vue-slider"></div>
-    <div class="buttons">
-      <button class="next">הבא</button>
-      <button class="prev">הקודם</button>
-      <button class="showAll">הצג הכל</button>
+    <div id="buttons" class="buttons">
+      <button @click="next">הבא</button>
+      <button @click="prev">הקודם</button>
+      <button @click="showAll">הצג הכל</button>
+      <button @click="showResults">סיכום</button>
     </div>
-
-    <section>
-      <header>ספר בראשית</header>
-    </section>
-
-    <section>
-      <header>
-        <p>חלק ראשון:</p>
-        <p> שאלות על אדם וחווה</p>
-      </header>
-      <article>
-        <ol class="questions">
-          <li>במה התלבשו אדם וחווה?
-            <ul class="answers">
-              <li class="correct">בעלי תאנה</li>
-              <li>בעלי זית</li>
-              <li>בעלי דקל</li>
-            </ul>     
-          </li>
-          <li>מה החטא שעשו אדם וחווה?
-            <ul class="answers">
-              <li class="correct">הם אכלו מפרי עץ הדעת</li>
-              <li>הם לכלכו את גן עדן</li>
-              <li>הם בנו פסלים והשתחוו להם</li>
-            </ul>
-          </li>
-
-          <li>איזה עונש קיבלה חווה?
-            <ul class="answers">
-              <li class="correct">יהיה לה קשה ללדת</li>
-              <li>היא הפכה לנציב מלח</li>
-              <li>אבד לה הזכרון</li>
-            </ul>
-          </li>
-        </ol>  
-      </article>
-    </section>
-
-    <section>
-      <header>
-        <p>חלק שני:</p>
-        <p>שאלות על קין והבל</p>
-      </header>
-      <article>
-        <ol class="questions">
-          <li>מי היה האח הבכור?
-            <ul class="answers">
-              <li class="correct">קין</li>
-              <li>הבל</li>
-            </ul>     
-          </li>
-
-          <li><span style="font-weight: bold">בונוס </span> - מי היה האח הצעיר ביותר?
-            <ul class="answers">
-              <li>קין</li>
-              <li>הבל</li>
-              <li class="correct">שת</li>
-            </ul>     
-          </li>
-          <li>מה היה המקצוע של קין והבל?
-            <ul class="answers">
-              <li class="correct">קין - עבודת אדמה, הבל - רועה צאן</li>
-              <li>קין - רועה צאן, הבל - עבודת אדמה</li>
-              <li>קין - טבח, הבל - זמר</li>
-            </ul>
-          </li>
-
-          <li>איזה חטא עשה קין?
-            <ul class="answers">
-              <li>הוא קילל את אמו</li>
-              <li class="correct">הוא הרג את הבל</li>
-              <li>הוא הרג את אביו</li>
-            </ul>
-          </li>
-        </ol>
-      </article>
-    </section>
-
-
-    <section>
-      <header>
-        <p>חלק שלישי:</p>
-        <p>נח והמבול</p>
-
-      </header>
-      <article>
-        <ol class="questions">
-          <li>
-            למה נח נבחר ע"י אלוהים? כלומר מדוע "מצא חן בעיני ה"?
-            <ul class="answers">
-              <li class="correct">כי הוא היה צדיק</li>
-              <li>כי הוא היה חכם</li>
-              <li>כי הוא היה עשיר</li>
-            </ul>     
-          </li>
-
-          <li>מי הייתה אשת נח?
-            <ul class="answers">
-              <li class="correct">שרה</li>
-              <li>זלפה</li>
-              <li>נעמה</li>
-            </ul>     
-          </li>
-          <li>
-            מי היו ילדיו של נח?
-            <ul class="answers">
-              <li>שֵׁם, חַם וְקַר</li>
-              <li class="correct">שֵׁם חַם וְיָפֶת</li>
-              <li>שֵׁם חַם וְיִפְעַת</li>
-            </ul>
-          </li>
-
-          <li>למה אלוהים עשה מבול?
-            <ul class="answers">
-              <li class="correct">כי אנשים היו רעים</li>
-              <li>כי הייתה בצורת גדולה</li>
-              <li>כי אנשים רצו לשחות</li>
-            </ul>
-          </li>
-        </ol>
-      </article>    
-    </section>
-
-    <section>
-      <header>
-        <p>חלק רביעי:</p>
-        <p>מגדל בבל</p>
-      </header>
-      <article>
-        <ol class="questions">
-          <li>למה בנו את מגדל בבל?
-            <ul class="answers">
-              <li class="correct">כי בני האדם רצו להגיע לשמיים</li>
-              <li>כי בני האדם רצו לראות למרחקים</li>
-              <li>כי בני האדם רצו לראות את אלוהים</li>
-            </ul>     
-          </li>
-
-          <li>למה אלוהים כעס על בניית המגדל?
-            <ul class="answers">
-              <li>כי בני האדם רצו לראותו</li>
-              <li>כי המגדל חסם את הנוף</li>
-              <li class="correct">כי דבר לא יהיה מעבר לכוחם</li>
-            </ul>     
-          </li>
-
-          <li>מה היה העונש שנתן אלוהים לבני האדם על בניית המגדל?
-            <ul class="answers">
-              <li class="correct">אלוהים בילבל את שפתם</li>
-              <li>אלוהים זרק עליהם ברקים</li>
-              <li>אלוהים הפך אותם לחיות בר</li>
-            </ul>     
-          </li>
-        </ol>
-      </article>    
-    </section>
-    <footer class="total hide">
+    
+    <div id="vue-slider"></div>
+    
+    <footer id="total" class="total" v-show="manager.isShowResults">
       <p class="text-center bold">סיכום</p>
       <div class="results">
-        <span class="correct" title="תשובות נכונות">0</span>
-        <span class="wrong" title="שגיאות">0</span>
+        <span class="correct" title="תשובות נכונות">
+          {{correct}}
+        </span>
+        <span class="wrong" title="שגיאות">
+          {{wrong}}
+        </span>
       </div>
     </footer>
-    <script src="index.js"></script>
+		
+		<script src="data.js"></script>
+		<script src="index.js"></script>
   </body>
 </html>
