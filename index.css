@@ -42,13 +42,15 @@ ol, ul {
   -webkit-tap-highlight-color: transparent;
 }
 
-.answers .clicked {
+.answers .clicked, .answers .revealed {
   color: red;
 }
-.answers .clicked.correct {
+.answers .clicked.correct, .answers .revealed.correct {
   color: green;
 }
-
+.answers .revealed.correct {
+  font-weight: bold
+}
 .footer {
   text-align: center;
 }

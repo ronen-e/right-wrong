@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/pubsubjs/1.4.2/pubsub.min.js"></script>
 		<script src="autobind.js"></script>
 		<link rel="stylesheet" href="index.css" />
+    
     <script type="text/x-template" id="x-slider">
       <div>
         <x-slide v-for="(slide, index) in slides"
@@ -48,13 +49,14 @@
             :text="answer.text"
             :correct="answer.correct"
             :handled="handled"
-            @correct="correct"
+            :revealed="revealAnswer"
+            @answer="answered(answer.correct)"
           ></li>
         </ul>
       </li>
     </script>
     <script type="text/x-template" id="x-slide-answer">
-      <li :class="{correct, clicked}" @click.prevent.stop="clickHandler">
+      <li :class="{correct, clicked, revealed}" @click.prevent.stop="clickHandler">
         {{text}}
       </li>
     </script>

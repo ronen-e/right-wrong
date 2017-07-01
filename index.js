@@ -3,28 +3,31 @@ function main() {
 
   // create and init slider
   var manager = new MySlideManager().start();
-  
-  PubSub.subscribe(EVENTS.correct, (event) => fx.updateResult(event, answers));
-  PubSub.subscribe(EVENTS.wrong, (event) => fx.updateResult(event, answers));
   initVue({manager, answers});
+  PubSub.subscribe(ANSWER, (type, payload) => fx.updateResult(payload));
 }
 
+let types = {
+  ANSWER: 'answer',
+  CORRECT: 'correct',
+  WRONG: 'wrong',
+}
+var { ANSWER, CORRECT, WRONG } = types;
 var answers = {
-  correct: 0,
-  wrong: 0
+  [CORRECT]: 0,
+  [WRONG]: 0,
 };
 
-const EVENTS = {
-  click: 'click',
-  correct: 'correct',
-  wrong: 'wrong'
-}
-
 let fx = {
-  updateResult(type, answers) {
-    switch(type) {
-      case EVENTS.correct: answers.correct++; break;
-      case EVENTS.wrong: answers.wrong++; break;
+  updateResult({correct, bonus}) {
+    if (correct) {
+      answers[CORRECT]++;
+      if (bonus){
+        answers[CORRECT]++;
+      }
+    }
+    if (!correct) {
+      answers[WRONG]++;
     }
   }
 };
@@ -61,7 +64,7 @@ class SlideManager {
     if (this.isMoveAllowed(index)) {
       index = index % this.slides.length;
 
-      var oldIndex = index;
+      var oldIndex = this.current;
       this.current = index;
       this.$emit('move', [index, oldIndex]);      
     }
@@ -79,7 +82,7 @@ class SlideManager {
   }
   
   isMoveAllowed(index) {
-    if (this.slides.length == 0) {
+    if (this.slides.length === 0) {
       return false;
     }
     if (this.enableLoop) {
@@ -126,7 +129,7 @@ class MySlideManager extends SlideManager {
       onstart: function onstart(event, currentIndex) {
         slider.move(currentIndex);
       },
-      onmove: function onmove(event, index, oldIndex) {
+      onmove: function onmove(event) {
         slider.isShowAll = false;
       },
       onshowall: function onshowall(event) {
@@ -158,7 +161,7 @@ boundClass(SlideManager);
 boundClass(MySlideManager);
 
 // Vue js
-function initVue(state){
+function initVue({manager, answers}){
   Vue.component('x-slide', {
     template: '#x-slide',
     props: ['title', 'questions'],
@@ -179,44 +182,48 @@ function initVue(state){
     props: ['text', 'answers', 'bonus'],
     data: function() { 
       return {
-        handled: false
+        handled: false,
+        answerCount: 0,
+        revealAnswer: false
       }; 
     },
     methods: {
-      correct() {
-        this.handled = true;
+      answered(correct) {
+        if (correct) {
+          this.handled = true;
+        }
+        this.answerCount += 1;
+        PubSub.publish(ANSWER, { correct: correct, bonus: this.bonus});
       }
     },
+    watch: {
+      answerCount(value, oldVal) {
+        if (value == this.answers.length-1 && !this.handled) {
+          this.handled = true;
+          this.revealAnswer = true;
+        }
+      }
+    }
   });
   Vue.component('x-slide-answer', {
     template: '#x-slide-answer',
-    props: ['text', 'correct', 'handled'],
+    props: ['text', 'correct', 'handled', 'revealed'],
     data: function() { 
       return { 
         clicked: false,
       }; 
     },
-    created() {
-      this.$on(EVENTS.correct, () => PubSub.publish(EVENTS.correct, answers));
-      this.$on(EVENTS.wrong, () => PubSub.publish(EVENTS.wrong, answers));
-    },
     methods: {
       clickHandler() {
-        
-        this.$emit('click');
-        
-        if (this.handled) {
-          return;
-        }
-
-        this.clicked = true;
-        
-        if (this.correct) {
-          this.$emit(EVENTS.correct);
-        } else {
-          this.$emit(EVENTS.wrong)
+        if (!this.handled) {
+          this.clicked = true;
         }
       },
+    },
+    watch: {
+      clicked(val, oldVal) {
+        this.$emit(ANSWER, {correct: this.correct});
+      }
     }
   });
   
@@ -225,9 +232,8 @@ function initVue(state){
     template: '#x-slider',
     data: function() {
       return {
-        data: data,
         slides: data.slides,
-        manager: state.manager
+        manager: manager
       }
     },
     methods: {
@@ -235,14 +241,14 @@ function initVue(state){
         return index == this.manager.current || this.manager.isShowAll;
       }
     }
-  });
+  });    
   
   var Footer = new Vue({
     el: '#total',
     data: function() {
       return {
         answers: answers,
-        manager: state.manager
+        manager: manager
       }
     },
     computed: {
@@ -255,10 +261,10 @@ function initVue(state){
     el: '#buttons',
     data: function() { return { }; },
     methods: {
-      next: () => state.manager.next(),
-      prev: () => state.manager.prev(),
-      showAll: () => state.manager.showAll(),
-      showResults: () => state.manager.showResults()
+      next: () => manager.next(),
+      prev: () => manager.prev(),
+      showAll: () => manager.showAll(),
+      showResults: () => manager.showResults()
     }
   });
  
