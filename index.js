@@ -1,3 +1,34 @@
+function main() {
+  console.clear();
+
+  // create and init slider
+  var manager = new MySlideManager().start();
+  
+  fx.on('correct', (event) => fx.updateResult(event.type, answers));
+  fx.on('wrong', (event) => fx.updateResult(event.type, answers));
+  $('body').on('click', '.questions .answers li', handleAnswer);  
+  
+}
+function handleAnswer(event) {
+  var el = this;
+  var $el = $(this);
+  if ($el.data('handled')) {
+    return;
+  }
+  var { correct, wrong } = COLORS;
+  var color = $el.is('.correct') ? correct : wrong;
+
+  // highlight click on correct answer
+  fx.highlight({
+    color: color,
+    el: el
+  });
+
+  var eventType = (color == correct) ? EVENTS.correct : EVENTS.wrong;
+  fx.trigger(eventType);
+  $el.data('handled', true);
+}
+
 function Question(text, answers, options={}) {
   answers = answers.map(answer => {
     return typeof answer !== 'object' ? [answer] : answer;
@@ -8,6 +39,11 @@ function Question(text, answers, options={}) {
     answers: answers.map((answer) => ({text: answer[0], correct: !!answer[1]})),
   }, options);
 }
+
+var answers = {
+  correct: 0,
+  wrong: 0
+};
 
 var data = {
   slides: [
@@ -106,39 +142,7 @@ var data = {
   ]
 }
 
-function main() {
-  var answers = {
-    correct: 0,
-    wrong: 0
-  };
-  
-  // create and init slider
-  var manager = new MySlideManager().start();
-  
-  fx.on('correct', (event) => fx.updateResult(event.type, answers));
-  fx.on('wrong', (event) => fx.updateResult(event.type, answers));
-  $('body').on('click', '.questions .answers li', function(event) {
-    
-    var el = this;
-    var $el = $(this);
-    if ($el.data('handled')) {
-      return;
-    }
-    var { correct, wrong } = COLORS;
-    var color = $el.is('.correct') ? correct : wrong;
 
-    // highlight click on correct answer
-    fx.highlight({
-      color: color,
-      el: el
-    });
-    
-    var eventType = (color == correct) ? EVENTS.correct : EVENTS.wrong;
-    fx.trigger(eventType);
-    $el.data('handled', true);
-  });  
-  
-}
 
 const EVENTS = {
   click: 'click',
@@ -358,13 +362,13 @@ boundClass(MySlideManager);
 function initVue(){
   Vue.component('x-slide', {
     template: '#x-slide',
-    props: ['data', 'title', 'questions'],
-    data: function() { return {} }
+    props: ['title', 'questions'],
+    data: function() { return {}; }
   });
   Vue.component('x-slide-header', {
     template: '#x-slide-header',
     props: ['title'],
-    data: function() { return {} },
+    data: function() { return {}; },
   });
   Vue.component('x-slide-body', {
     template: '#x-slide-body',
@@ -374,14 +378,44 @@ function initVue(){
   Vue.component('x-slide-question', {
     template: '#x-slide-question',
     props: ['text', 'answers', 'bonus'],
-    data: function() { return {}; },
+    data: function() { 
+      return {
+        handled: false
+      }; 
+    },
+    methods: {
+      correct() {
+        this.handled = true;
+      }
+    },
   });
   Vue.component('x-slide-answer', {
     template: '#x-slide-answer',
-    props: ['text', 'correct'],
-    data: function() { return {}; },
+    props: ['text', 'correct', 'handled'],
+    data: function() { 
+      return { 
+        clicked: false,
+      }; 
+    },
+    methods: {
+      clickHandler() {
+        
+        this.$emit('click');
+        
+        if (this.handled) {
+          return;
+        }
+
+        this.clicked = true;
+        
+        if (this.correct) {
+          this.$emit('correct');
+        }
+      },
+    }
   });
-  new Vue({
+  
+  var App = new Vue({
     el: '#vue-slider',
     template: '#x-slider',
     data: function() {
@@ -389,8 +423,10 @@ function initVue(){
         data: data,
         slides: data.slides,
       }
-    }
-  })
+    },
+  });
+  
+  return App;
 }
 
 main();

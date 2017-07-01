@@ -42,6 +42,13 @@ ol, ul {
   -webkit-tap-highlight-color: transparent;
 }
 
+.answers .clicked {
+  color: red;
+}
+.answers .clicked.correct {
+  color: green;
+}
+
 .footer {
   text-align: center;
 }
