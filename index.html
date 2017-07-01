@@ -24,17 +24,20 @@
         </x-slide>
       </div>
     </script>    
+    
     <script type="text/x-template" id="x-slide">
       <section>
         <x-slide-header :title="title" />
         <x-slide-body :questions="questions" />
       </section>
     </script>
+    
     <script type="text/x-template" id="x-slide-header">
       <header>
         <p v-for="line in title">{{line}}</p> 
       </header>
     </script>
+    
     <script type="text/x-template" id="x-slide-body">
       <article>
         <ol class="questions">
@@ -47,6 +50,7 @@
         </ol>
       </article>
     </script>
+    
     <script type="text/x-template" id="x-slide-question">
       <li>
         <x-slide-bonus v-if="bonus" />
@@ -63,21 +67,24 @@
         </ul>
       </li>
     </script>
+    
     <script type="text/x-template" id="x-slide-answer">
       <li :class="{correct, clicked, revealed}" @click.prevent.stop="clickHandler">
         {{text}}
       </li>
     </script>
+    
     <script type="text/x-template" id="x-slide-bonus">
       <span :title="t('slides.bonus.title')" class="bold bonus">
         {{t('slides.bonus.text')}}
       </span>
     </script>
+    
     <script type="text/x-template" id="x-slide-source">
       <a :href="source" class="source" target="_blank">
         [{{t('slides.source')}}]
       </a>
-    </script> 
+    </script>
 	</head>
   <body>
     <div id="buttons" class="buttons">

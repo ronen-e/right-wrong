@@ -9,7 +9,7 @@ function Question(text, answers, options={}) {
 	}, options);
 }
 
-// for application
+// Data for application
 var data = {
 	slides: [
 		{
@@ -62,21 +62,25 @@ var data = {
 		{
 			title: ['חלק שלישי:', 'נח והמבול'],
 			questions: [
+		
 				new Question('למה נח נבחר ע"י אלוהים? כלומר מדוע "מצא חן בעיני ה"?', [
 					['כי הוא היה צדיק', true],
 					'כי הוא היה חכם',
 					'כי הוא היה עשיר'
 				], {source: 'https://he.wikipedia.org/wiki/%D7%94%D7%9E%D7%91%D7%95%D7%9C#.D7.91.D7.A0.D7.99.D7.99.D7.AA_.D7.94.D7.AA.D7.99.D7.91.D7.94'}),
+				
 				new Question('מי הייתה אשת נח?', [
 					'שרה',
 					'זלפה',
 					['נעמה', true]
 				], {source: 'https://he.wikipedia.org/wiki/%D7%A0%D7%A2%D7%9E%D7%94'}),
+				
 				new Question('מי היו ילדיו של נח?', [
 					'שֵׁם, חַם וְקַר',
 					['שֵׁם חַם וְיָפֶת', true],
 					'שֵׁם חַם וְיִפְעַת'
 				], {source: 'https://he.wikipedia.org/wiki/%D7%A0%D7%97'}),
+				
 				new Question('למה אלוהים עשה מבול?', [
 					['כי אנשים היו רעים', true],
 					'כי הייתה בצורת גדולה',
@@ -92,11 +96,13 @@ var data = {
 					'כי בני האדם רצו לראות למרחקים',
 					'כי בני האדם רצו לראות את אלוהים'
 				], {source: 'https://he.wikipedia.org/wiki/%D7%9E%D7%92%D7%93%D7%9C_%D7%91%D7%91%D7%9C#.D7.94.D7.A1.D7.99.D7.A4.D7.95.D7.A8_.D7.94.D7.9E.D7.A7.D7.A8.D7.90.D7.99'}),
+			
 				new Question('למה אלוהים כעס על בניית המגדל?', [
 					'כי בני האדם רצו לראותו',
 					'כי המגדל חסם את הנוף',
 					['כי דבר לא יהיה מעבר לכוחם', true]
 				], {source: 'https://he.wikipedia.org/wiki/%D7%9E%D7%92%D7%93%D7%9C_%D7%91%D7%91%D7%9C#.D7.A4.D7.99.D7.A8.D7.95.D7.A9.D7.95_.D7.95.D7.9E.D7.92.D7.9E.D7.AA.D7.95'}),
+				
 				new Question('מה היה העונש שנתן אלוהים לבני האדם על בניית המגדל?', [
 					['אלוהים בילבל את שפתם', true],
 					'אלוהים זרק עליהם ברקים',
@@ -112,11 +118,13 @@ var data = {
 					'7 ימים',
 					['6 ימים', true]
 				], { source: 'https://he.wikipedia.org/wiki/%D7%99%D7%95%D7%9D_%D7%94%D7%A9%D7%91%D7%AA'}),
+				
 				new Question('על שם מה נקרא יום השבת?', [
 					'על שם כוכב הלכת שבתאי',
 					['כי אלוהים שבת מכל מלאכה', true],
 					'הייתה שביתה של הסתדרות העובדים',
 				], { source: 'https://he.wikipedia.org/wiki/%D7%99%D7%95%D7%9D_%D7%94%D7%A9%D7%91%D7%AA'}),
+				
 				new Question('מה היה לפני בריאת העולם?', [
 					['כלום', true],
 					'תוהו ובוהו',
