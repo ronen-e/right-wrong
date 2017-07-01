@@ -3,12 +3,12 @@ function main() {
 
   // create and init slider
   var manager = new MySlideManager();
+  const store = initVue({ manager: manager, answers: answers, data: data });
   
-  initVue({ manager: manager, answers: answers });
   SoundEffect.init();
-  PubSub.subscribe(ANSWER, (type, payload) => answers.update(payload));
   PubSub.subscribe(ANSWER, (type, payload) => SoundEffect(payload));
 }
+
 
 let types = {
   ANSWER: 'answer',
@@ -16,9 +16,8 @@ let types = {
   WRONG: 'wrong',
 }
 var { ANSWER, CORRECT, WRONG } = types;
-var answers = {
-  [CORRECT]: 0,
-  [WRONG]: 0,
+
+var answers = Object.create({
   update: function update({ correct, bonus}) {
     if (correct) {
       this[CORRECT]++;
@@ -29,8 +28,28 @@ var answers = {
     if (!correct) {
       this[WRONG]++;
     }    
-  }
-};
+  }  
+});
+answers[CORRECT] = 0;
+answers[WRONG] = 0;
+
+function createStore(config) {
+  const store = new Vuex.Store({
+    //strict: true,
+    state: {
+      slides: config.data.slides,
+      manager: config.manager,
+      answers: config.answers
+    },
+    mutations: {
+      [ANSWER](state, payload) {
+        state.answers.update(payload);
+      },
+    },
+  });
+  
+  return store;
+}
 
 class SlideManager {
   constructor() {
@@ -155,13 +174,15 @@ boundClass(SlideManager);
 boundClass(MySlideManager);
 
 // Vue js
-function initVue({manager, answers}){
+function initVue({manager, answers, data}){
   // inject a handler for translate function
   Vue.mixin({
     methods: {
       t: translate
     }
   });
+  
+  const store = createStore({manager, answers, data});
   
   Vue.component('x-slide', {
     template: '#x-slide',
@@ -186,11 +207,13 @@ function initVue({manager, answers}){
       }; 
     },
     methods: {
+      
       answered(correct) {
         if (correct) {
           this.handle();
         }
         this.answerCount += 1;
+        this.$store.commit(ANSWER, {correct: correct, bonus: this.bonus});
         PubSub.publish(ANSWER, { correct: correct, bonus: this.bonus});
       },
       handle() {
@@ -239,12 +262,11 @@ function initVue({manager, answers}){
   var App = new Vue({
     el: '#vue-slider',
     template: '#x-slider',
-    data: function() {
-      return {
-        slides: data.slides,
-        manager: manager
-      }
-    },
+    store: store,
+    computed: Vuex.mapState({
+      slides: state => state.slides,
+      manager: 'manager'
+    }),
     methods: {
       show(index) {
         return manager.isShowAll || index === manager.current;
@@ -254,21 +276,17 @@ function initVue({manager, answers}){
   
   var Total = new Vue({
     el: '#total',
-    data: function() {
-      return {
-        answers: answers,
-        manager: manager,
-      }
-    },
-    computed: {
-      showResults: () => manager.isShowResults,
-      correct: () => answers.correct,
-      wrong: () => answers.wrong
-    }
+    store,
+    computed: Vuex.mapState({
+      showResults: (state) => state.manager.isShowResults,
+      correct: (state) => state.answers.correct,
+      wrong: (state) => state.answers.wrong
+    })
   });
   
   var Buttons = new Vue({
     el: '#buttons',
+    store,
     methods: {
       next: manager.next,
       prev: manager.prev,
@@ -276,8 +294,10 @@ function initVue({manager, answers}){
       showResults: manager.showResults
     }
   });
- 
+  
+  return store;
 }
+
 
 const translations = {
   buttons: {
