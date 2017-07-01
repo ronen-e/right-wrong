@@ -2,11 +2,12 @@ function main() {
   console.clear();
 
   // create and init slider
-  var manager = new MySlideManager();
-  const store = initVue({ manager: manager, answers: answers, data: data });
+  const store = initVue({ manager: new MySlideManager(), answers: answers, data: data });
   
   SoundEffect.init();
   PubSub.subscribe(ANSWER, (type, payload) => SoundEffect(payload));
+  
+  store.state.manager.start();
 }
 
 
@@ -14,8 +15,9 @@ let types = {
   ANSWER: 'answer',
   CORRECT: 'correct',
   WRONG: 'wrong',
+  UPDATE_MANAGER: 'UPDATE_MANAGER',
 }
-var { ANSWER, CORRECT, WRONG } = types;
+var { ANSWER, CORRECT, WRONG, UPDATE_MANAGER } = types;
 
 var answers = Object.create({
   update: function update({ correct, bonus}) {
@@ -34,18 +36,27 @@ answers[CORRECT] = 0;
 answers[WRONG] = 0;
 
 function createStore(config) {
+  var { manager, answers, data: { slides } } = config;
   const store = new Vuex.Store({
-    //strict: true,
+    strict: true,
     state: {
-      slides: config.data.slides,
-      manager: config.manager,
-      answers: config.answers
+      slides,
+      manager,
+      answers
     },
     mutations: {
       [ANSWER](state, payload) {
         state.answers.update(payload);
       },
+      [UPDATE_MANAGER](state, {prop, value}) {
+        state.manager.update(prop, value);
+      }
     },
+  });
+  
+  
+  manager.$on('set', (type, payload) => {
+    store.commit(UPDATE_MANAGER, payload);
   });
   
   return store;
@@ -81,7 +92,7 @@ class SlideManager {
   
   start() {
     if (!this.isEmpty() && this.current < 0) {
-      this.current = 0;
+      this.set('current', 0);
     }
     this.$emit('start', [this.current]);
     
@@ -93,7 +104,7 @@ class SlideManager {
       index = index % this.length;
 
       var oldIndex = this.current;
-      this.current = index;
+      this.set('current', index);
       this.$emit('move', [index, oldIndex]);      
     }
     return this;
@@ -110,6 +121,10 @@ class SlideManager {
   $on(...args) {
     this.pubsub.subscribe(...args);
   }
+  set(prop, value) {
+    this[prop] = value;
+    this.$emit('change', { prop, value });
+  }
 }
 
 SlideManager.prototype.defaults = {
@@ -118,7 +133,6 @@ SlideManager.prototype.defaults = {
   oninit: null,
   onstart: null,
   onmove: null,
-  externalState: false,
 }
 
 class MySlideManager extends SlideManager {
@@ -127,20 +141,23 @@ class MySlideManager extends SlideManager {
     var slider = this;
     slider.init({
       slides: data.slides,
+      externalState: true,
       onstart: function onstart(event, currentIndex) {
         slider.move(currentIndex);
       },
       onmove: function onmove(event) {
-        slider.isShowAll = false;
+        slider.set('isShowAll', false);
       },
       onshowall: function onshowall(event) {
         slider.toggle('isShowAll');
       },
       onshowresults: function onshowresults(event) {
         slider.toggle('isShowResults');
+      },
+      ontoggle: function toggle(event, {prop}) {
+        slider.set(prop, !slider[prop]);
       }
     })
-    .start();
   }
   next() {
     return this.move(this.current + 1);
@@ -156,18 +173,29 @@ class MySlideManager extends SlideManager {
   }
   toggle(prop) {
     this.$emit('toggle', { prop });
-    this[prop] = !this[prop];
+  }
+  set(prop, value) {
+    if (!this.externalState) {
+      super.set(prop, value);
+    }
+    else {
+      this.$emit('set', { prop, value });
+    }
+  }
+  update(prop, value) {
+    super.set(prop, value);
   }
 } 
 
 MySlideManager.prototype.defaults = Object.assign(
   {},
-  MySlideManager.prototype.defaults, 
+  SlideManager.prototype.defaults, 
   {
     isShowAll: false,
     isShowResults: false,
     onshowall: null,
-    onshowresults: null
+    onshowresults: null,
+    externalState: false
   }
 );
 
