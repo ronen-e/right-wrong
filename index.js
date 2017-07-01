@@ -4,9 +4,8 @@ function main() {
   // create and init slider
   var manager = new MySlideManager().start();
   
-  fx.on(EVENTS.correct, (event) => fx.updateResult(event.type, answers));
-  fx.on(EVENTS.wrong, (event) => fx.updateResult(event.type, answers));
-  
+  PubSub.subscribe(EVENTS.correct, (event) => fx.updateResult(event, answers));
+  PubSub.subscribe(EVENTS.wrong, (event) => fx.updateResult(event, answers));
   initVue({manager, answers});
 }
 
@@ -21,19 +20,18 @@ const EVENTS = {
   wrong: 'wrong'
 }
 
-let fx = Object.create($({}));
-Object.assign(fx, {
+let fx = {
   updateResult(type, answers) {
     switch(type) {
       case EVENTS.correct: answers.correct++; break;
       case EVENTS.wrong: answers.wrong++; break;
     }
   }
-});
+};
 
 class SlideManager {
   constructor() {
-    this.pubsub = $({});
+    this.pubsub = Object.create(PubSub);
   }
   init(options={}) {
     // configuration
@@ -60,40 +58,20 @@ class SlideManager {
   }
 
   move(index) {
-    var len = this.slides.length;
+    if (this.isMoveAllowed(index)) {
+      index = index % this.slides.length;
 
-    if (len === 0) {
-      return;
+      var oldIndex = index;
+      this.current = index;
+      this.$emit('move', [index, oldIndex]);      
     }
-    
-    if (index >= len) {
-      index = 0;
-    }
-    if (index < 0) {
-      index = len - 1;
-    }
-  
-    var oldIndex = index;
-    this.current = index;
-    this.$emit('move', [index, oldIndex]);
-    
     return this;
   }
   next() {
-    var idx = this.current + 1;
-    if (this.isMoveAllowed(idx)){
-      this.move(idx);
-    }
-    
-    return this;
+    return this.move(this.current + 1);
   }
   prev() {
-    var idx = this.current - 1;
-    if (this.isMoveAllowed(idx)){
-      this.move(idx);
-    }
-    
-    return this;
+    return this.move(this.current - 1);
   }
   showAll() {
     this.$emit('showall');
@@ -101,6 +79,9 @@ class SlideManager {
   }
   
   isMoveAllowed(index) {
+    if (this.slides.length == 0) {
+      return false;
+    }
     if (this.enableLoop) {
       return true;
     }
@@ -111,17 +92,12 @@ class SlideManager {
     return false;
   }
   
-  destroy() {
-    Object.assign(this, this.defaults);
-    this.$emit('destroy');
-    return this;
-  }
   $emit(...args){
-    this.pubsub.trigger(...args);
+    this.pubsub.publish(...args);
     return this;
   }
   $on(...args) {
-    this.pubsub.on(...args);
+    this.pubsub.subscribe(...args);
     return this;
   }
 }
@@ -221,8 +197,8 @@ function initVue(state){
       }; 
     },
     created() {
-      this.$on(EVENTS.correct, () => fx.trigger(EVENTS.correct, answers));
-      this.$on(EVENTS.wrong, () => fx.trigger(EVENTS.wrong, answers));
+      this.$on(EVENTS.correct, () => PubSub.publish(EVENTS.correct, answers));
+      this.$on(EVENTS.wrong, () => PubSub.publish(EVENTS.wrong, answers));
     },
     methods: {
       clickHandler() {
