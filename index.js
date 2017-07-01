@@ -10,28 +10,25 @@ function main() {
   store.state.manager.start();
 }
 
-
-let types = {
+const types = {
   ANSWER: 'answer',
   CORRECT: 'correct',
   WRONG: 'wrong',
   UPDATE_MANAGER: 'UPDATE_MANAGER',
 }
-var { ANSWER, CORRECT, WRONG, UPDATE_MANAGER } = types;
+const { ANSWER, CORRECT, WRONG, UPDATE_MANAGER } = types;
 
-var answers = Object.create({
+const answers = Object.create({
   update: function update({ correct, bonus}) {
-    if (correct) {
-      this[CORRECT]++;
-      if (bonus) {
-        this[CORRECT]++;
-      }
+    switch(true) {
+      case !correct: this[WRONG]++; 
+        break;
+      case bonus: this[CORRECT]++;  // intentional fallthrough
+      case correct: this[CORRECT]++;
     }
-    if (!correct) {
-      this[WRONG]++;
-    }    
   }  
 });
+answers.update = answers.update.bind(answers);
 answers[CORRECT] = 0;
 answers[WRONG] = 0;
 
@@ -54,10 +51,10 @@ function createStore(config) {
     },
   });
   
+  manager.$on('set', (type, payload) => store.commit(UPDATE_MANAGER, payload));
   
-  manager.$on('set', (type, payload) => {
-    store.commit(UPDATE_MANAGER, payload);
-  });
+  // Notify the global PubSub whenever the store mutates.
+  store.subscribe((mutation, state) => PubSub.publish(mutation.type, mutation.payload))
   
   return store;
 }
@@ -66,6 +63,7 @@ class SlideManager {
   constructor() {
     this.pubsub = Object.create(PubSub);
   }
+
   init(options={}) {
     // configuration
     Object.assign(this, this.defaults, options);
@@ -111,7 +109,7 @@ class SlideManager {
   }
 
   isMoveAllowed(index) {
-    return (this.length > 0 && index >= 0 && index < this.length);
+    return (!this.isEmpty() && index >= 0 && index < this.length);
   }
   
   $emit(...args){
@@ -121,6 +119,7 @@ class SlideManager {
   $on(...args) {
     this.pubsub.subscribe(...args);
   }
+  
   set(prop, value) {
     this[prop] = value;
     this.$emit('change', { prop, value });
@@ -159,31 +158,37 @@ class MySlideManager extends SlideManager {
       }
     })
   }
+  
   next() {
     return this.move(this.current + 1);
   }
+  
   prev() {
     return this.move(this.current - 1);
   }
+  
   showAll() {
     this.$emit('showall');
   }
+  
   showResults() {
     this.$emit('showresults');
   }
+  
   toggle(prop) {
     this.$emit('toggle', { prop });
   }
+  
   set(prop, value) {
     if (!this.externalState) {
       super.set(prop, value);
-    }
-    else {
+    } else {
       this.$emit('set', { prop, value });
     }
   }
-  update(prop, value) {
-    super.set(prop, value);
+  
+  update(...args) {
+    super.set(...args);
   }
 } 
 
@@ -218,14 +223,17 @@ function initVue({manager, answers, data}){
     template: '#x-slide',
     props: ['title', 'questions'],
   });
+  
   Vue.component('x-slide-header', {
     template: '#x-slide-header',
     props: ['title'],
   });
+  
   Vue.component('x-slide-body', {
     template: '#x-slide-body',
     props: ['questions'],
   });
+  
   Vue.component('x-slide-question', {
     template: '#x-slide-question',
     props: ['text', 'answers', 'bonus', 'source'],
@@ -237,14 +245,12 @@ function initVue({manager, answers, data}){
       }; 
     },
     methods: {
-      
       answered(correct) {
         if (correct) {
           this.handle();
         }
         this.answerCount += 1;
         this.$store.commit(ANSWER, {correct: correct, bonus: this.bonus});
-        PubSub.publish(ANSWER, { correct: correct, bonus: this.bonus});
       },
       handle() {
         this.handled = true;
@@ -281,9 +287,11 @@ function initVue({manager, answers, data}){
       }
     }
   });
+  
   Vue.component('x-slide-bonus', {
     template: '#x-slide-bonus',
   });
+  
   Vue.component('x-slide-source', {
     template: '#x-slide-source',
     props: ['source']
@@ -299,7 +307,7 @@ function initVue({manager, answers, data}){
     }),
     methods: {
       show(index) {
-        return manager.isShowAll || index === manager.current;
+        return this.manager.isShowAll || index === this.manager.current;
       }
     }
   });    
@@ -316,7 +324,6 @@ function initVue({manager, answers, data}){
   
   var Buttons = new Vue({
     el: '#buttons',
-    store,
     methods: {
       next: manager.next,
       prev: manager.prev,
@@ -328,8 +335,21 @@ function initVue({manager, answers, data}){
   return store;
 }
 
-
 const translations = {
+  _locale: 'he',
+  get locale() {
+    return this._locale;
+  },
+  set locale(loc) {
+    if (this.hasOwnProperty(loc)) {
+      this._locale = loc;
+    } else {
+      console.warn(`locale ${loc} is not supported`);
+    }
+  }
+};
+
+translations['he'] = {
   buttons: {
     next: 'הבא',
     previous: 'הקודם',
@@ -349,8 +369,10 @@ const translations = {
     source: 'מקור'
   }
 }
+
 function translate(path) {
-  return _.get(translations, path, path);
+  let fullPath = `${translations.locale}.${path}`;
+  return _.get(translations, fullPath, path);
 }
 
 function SoundEffect(payload) {
