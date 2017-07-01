@@ -39,6 +39,7 @@
             :text="question.text"
             :answers="question.answers"
             :bonus="question.bonus"
+            :source="question.source"
             ></li>
         </ol>
       </article>
@@ -47,6 +48,7 @@
       <li>
         <x-slide-bonus v-if="bonus" />
         {{text}}
+        <x-slide-source v-if="source && handled" :source="source" />
         <ul class="answers">
           <li is="x-slide-answer" v-for="answer in answers"
             :text="answer.text"
@@ -67,7 +69,12 @@
       <span :title="t('slides.bonus.title')" class="bold bonus">
         {{t('slides.bonus.text')}}
       </span>
-    </script>  
+    </script>
+    <script type="text/x-template" id="x-slide-source">
+      <a :href="source" class="source" target="_blank">
+        [{{t('slides.source')}}]
+      </a>
+    </script> 
 	</head>
   <body>
     <div id="buttons" class="buttons">

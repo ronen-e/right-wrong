@@ -175,7 +175,7 @@ function initVue({manager, answers}){
   });
   Vue.component('x-slide-question', {
     template: '#x-slide-question',
-    props: ['text', 'answers', 'bonus'],
+    props: ['text', 'answers', 'bonus', 'source'],
     data: function() { 
       return {
         handled: false,
@@ -228,7 +228,11 @@ function initVue({manager, answers}){
   });
   Vue.component('x-slide-bonus', {
     template: '#x-slide-bonus',
-  });  
+  });
+  Vue.component('x-slide-source', {
+    template: '#x-slide-source',
+    props: ['source']
+  });
   
   var App = new Vue({
     el: '#vue-slider',
@@ -289,7 +293,8 @@ const translations = {
     bonus: {
       title: '2 נקודות',
       text: 'בונוס - 2 נקודות'
-    }
+    },
+    source: 'מקור'
   }
 }
 function translate(path) {
