@@ -226,6 +226,10 @@ function initVue({manager, answers}){
       }
     }
   });
+  Vue.component('x-slide-bonus', {
+    template: '#x-slide-bonus',
+    data: function() { return {}; },
+  });  
   
   var App = new Vue({
     el: '#vue-slider',

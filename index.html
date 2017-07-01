@@ -43,7 +43,8 @@
     </script>
     <script type="text/x-template" id="x-slide-question">
       <li>
-        <span class="bold" v-if="bonus">בונוס - </span>{{text}}
+        <x-slide-bonus v-if="bonus" />
+        {{text}}
         <ul class="answers">
           <li is="x-slide-answer" v-for="answer in answers"
             :text="answer.text"
@@ -60,6 +61,11 @@
         {{text}}
       </li>
     </script>
+    <script type="text/x-template" id="x-slide-bonus">
+      <span title="2 נקודות" class="bold bonus">
+        בונוס - 2 נקודות 
+      </span>
+    </script> 
 	</head>
   <body>
     <div id="buttons" class="buttons">
