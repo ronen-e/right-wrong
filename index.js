@@ -118,6 +118,7 @@ SlideManager.prototype.defaults = {
   oninit: null,
   onstart: null,
   onmove: null,
+  externalState: false,
 }
 
 class MySlideManager extends SlideManager {
@@ -154,6 +155,7 @@ class MySlideManager extends SlideManager {
     this.$emit('showresults');
   }
   toggle(prop) {
+    this.$emit('toggle', { prop });
     this[prop] = !this[prop];
   }
 } 
