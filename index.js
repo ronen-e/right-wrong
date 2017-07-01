@@ -154,6 +154,13 @@ boundClass(MySlideManager);
 
 // Vue js
 function initVue({manager, answers}){
+  // inject a handler for translate function
+  Vue.mixin({
+    methods: {
+      t: translate
+    }
+  });
+  
   Vue.component('x-slide', {
     template: '#x-slide',
     props: ['title', 'questions'],
@@ -272,6 +279,17 @@ const translations = {
     previous: 'הקודם',
     showall: 'הצג הכל',
     total: 'סיכום',
+  },
+  results: {
+    total: 'סיכום',
+    correct: 'תשובות נכונות',
+    wrong: 'שגיאות'
+  },
+  slides: {
+    bonus: {
+      title: '2 נקודות',
+      text: 'בונוס - 2 נקודות'
+    }
   }
 }
 function translate(path) {

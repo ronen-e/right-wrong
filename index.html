@@ -6,13 +6,15 @@
 		<title>Right Wrong</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/pubsubjs/1.4.2/pubsub.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/lodash/4/lodash.min.js"></script>
+    
 		<script src="autobind.js"></script>
 		<link rel="stylesheet" href="index.css" />
     
     <script type="text/x-template" id="x-slider">
       <div>
         <x-slide v-for="(slide, index) in slides"
-          v-show="isShow(index)"
+          v-show="show(index)"
           :title="slide.title"
           :questions="slide.questions"
           >
@@ -62,28 +64,28 @@
       </li>
     </script>
     <script type="text/x-template" id="x-slide-bonus">
-      <span title="2 נקודות" class="bold bonus">
-        בונוס - 2 נקודות 
+      <span :title="t('slides.bonus.title')" class="bold bonus">
+        {{t('slides.bonus.text')}}
       </span>
-    </script> 
+    </script>  
 	</head>
   <body>
     <div id="buttons" class="buttons">
-      <button @click="next">הבא</button>
-      <button @click="prev">הקודם</button>
-      <button @click="showAll">הצג הכל</button>
-      <button @click="showResults">סיכום</button>
+      <button @click="next">{{t('buttons.next')}}</button>
+      <button @click="prev">{{t('buttons.previous')}}</button>
+      <button @click="showAll">{{t('buttons.showall')}}</button>
+      <button @click="showResults">{{t('buttons.total')}}</button>
     </div>
     
     <div id="vue-slider"></div>
     
     <footer id="total" class="total" v-show="showResults">
-      <p class="text-center bold">סיכום</p>
+      <p class="text-center bold">{{t('results.total')}}</p>
       <div class="results">
-        <span class="correct" title="תשובות נכונות">
+        <span class="correct" :title="t('results.correct')">
           {{correct}}
         </span>
-        <span class="wrong" title="שגיאות">
+        <span class="wrong" :title="t('results.wrong')">
           {{wrong}}
         </span>
       </div>
