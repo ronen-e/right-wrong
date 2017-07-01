@@ -1,7 +1,8 @@
 body {
   direction: rtl;
+  -ms-touch-action: manipulation; /* IE10 /
+  touch-action: manipulation; / IE11+ */  
 }
-
 .buttons {
   display: flex;
   justify-content: center;
