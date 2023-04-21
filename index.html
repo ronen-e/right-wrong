@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-		<title>Right Wrong</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1"
+    />
+    <title>Right Wrong</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.3/vue.js"></script>
-		<script src="https://unpkg.com/vuex"></script>
-		<script src="https://cdn.jsdelivr.net/pubsubjs/1.4.2/pubsub.min.js"></script>
+    <script src="https://unpkg.com/vuex@2.0.0/dist/vuex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pubsubjs/1.4.2/pubsub.min.js"></script>
     <script src="https://cdn.jsdelivr.net/lodash/4/lodash.min.js"></script>
-		<!-- Disable 300ms click delay in mobile -->
-		<!-- <script src="http://hammerjs.github.io/dist/hammer-time.min.js"></script> -->
+    <!-- Disable 300ms click delay in mobile -->
+    <script src="https://hammerjs.github.io/dist/hammer-time.min.js"></script>
 
-		<script src="autobind.js"></script>
-		<link rel="stylesheet" href="index.css" />
-    
+    <script src="autobind.js"></script>
+    <link rel="stylesheet" href="index.css" />
+
     <script type="text/x-template" id="x-slider">
       <div>
         <x-slide v-for="(slide, index) in slides"
@@ -23,25 +26,25 @@
           >
         </x-slide>
       </div>
-    </script>    
-    
+    </script>
+
     <script type="text/x-template" id="x-slide">
       <section>
         <x-slide-header :title="title" />
         <x-slide-body :questions="questions" />
       </section>
     </script>
-    
+
     <script type="text/x-template" id="x-slide-header">
       <header>
-        <p v-for="line in title">{{line}}</p> 
+        <p v-for="line in title">{{line}}</p>
       </header>
     </script>
-    
+
     <script type="text/x-template" id="x-slide-body">
       <article>
         <ol class="questions">
-          <li is="x-slide-question" v-for="question in questions" 
+          <li is="x-slide-question" v-for="question in questions"
             :text="question.text"
             :answers="question.answers"
             :bonus="question.bonus"
@@ -50,7 +53,7 @@
         </ol>
       </article>
     </script>
-    
+
     <script type="text/x-template" id="x-slide-question">
       <li>
         <x-slide-bonus v-if="bonus" />
@@ -67,25 +70,25 @@
         </ul>
       </li>
     </script>
-    
+
     <script type="text/x-template" id="x-slide-answer">
       <li :class="{correct, clicked, revealed}" @click.prevent.stop="clickHandler">
         {{text}}
       </li>
     </script>
-    
+
     <script type="text/x-template" id="x-slide-bonus">
       <span :title="t('slides.bonus.title')" class="bold bonus">
         {{t('slides.bonus.text')}}
       </span>
     </script>
-    
+
     <script type="text/x-template" id="x-slide-source">
       <a :href="source" class="source" target="_blank">
         [{{t('slides.source')}}]
       </a>
     </script>
-	</head>
+  </head>
   <body>
     <div id="buttons" class="buttons">
       <button @click="next">{{t('buttons.next')}}</button>
@@ -93,9 +96,9 @@
       <button @click="showAll">{{t('buttons.showall')}}</button>
       <button @click="showResults">{{t('buttons.total')}}</button>
     </div>
-    
+
     <div id="vue-slider"></div>
-    
+
     <footer id="total" class="total" v-show="showResults">
       <p class="text-center bold">{{t('results.total')}}</p>
       <div class="results">
@@ -107,8 +110,8 @@
         </span>
       </div>
     </footer>
-		
-		<script src="data.js"></script>
-		<script src="index.js"></script>
+
+    <script src="data.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>
